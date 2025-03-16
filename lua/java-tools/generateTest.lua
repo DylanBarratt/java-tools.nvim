@@ -1,4 +1,4 @@
-local options = require("java-tools.nvim").opts.generateTest
+local options = require("java-tools").opts.generateTest
 
 local function generateJunitTest()
 	local filePath = vim.uri_to_fname(vim.lsp.util.make_position_params().textDocument.uri)

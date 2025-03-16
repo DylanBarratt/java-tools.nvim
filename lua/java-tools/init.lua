@@ -31,7 +31,7 @@ function Main()
 	if M.opts.generateTest.enabled then
 		vim.api.nvim_create_user_command(
 			"JavaGenerateTest",
-			require("java-tools.nvim.generateTest"),
+			require("java-tools.generateTest"),
 			{ desc = "JDTLS Code Action Menu" }
 		)
 	end
