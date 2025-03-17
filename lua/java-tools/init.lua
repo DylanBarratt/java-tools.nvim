@@ -32,7 +32,7 @@ function Main()
 		vim.api.nvim_create_user_command(
 			"JavaGenerateTest",
 			require("java-tools.generateTest"),
-			{ desc = "JDTLS Code Action Menu" }
+			{ desc = "Generate test" }
 		)
 	end
 end
