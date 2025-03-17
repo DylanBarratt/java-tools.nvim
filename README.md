@@ -10,15 +10,15 @@ java-tools provides a set of user freindly tools that give neovim useful Java fu
     "DylanBarratt/java-tools.nvim",
     ft = "Java" -- lazy load plugin to open with Java file type
     opts = {
-		testDirectory = string,
-        generateTest = GenerateTestOptions, -- see [Test generation](### Test generation 🧪)
-        goToTest = GoToTestOptions, -- see [GoTo test](### GoTo test 🎯)
+        testDirectory = string,
+        generateTest = GenerateTestOptions, -- see Test generation
+        goToTest = GoToTestOptions, -- see GoTo test
     }
 }
 ```
 
 ## Features
-### Test generation 🧪
+### Test Generation 🧪
 Tired of manually creating test files? Hate navigating the file tree to find the place for your test? The JUnit test generation command will automatically generate a new test file for the current Java class!
 
 #### Options
@@ -44,7 +44,7 @@ class %sTest {
 }
 ```
 
-### GoTo test 🎯
+### GoTo Test 🎯
 Clicking through a file list is slow! Navigate directly to the test file for the current class
 
 #### Options
@@ -55,7 +55,7 @@ goToTest = {
 ```
 
 #### TODO:
-    - go to tests that refernce the current class
+    - go to tests that reference the current class
 
 ## Future Features
     - better doc comments
