@@ -1,4 +1,4 @@
----@return table | nil
+---@return { filePath: string, className: string, packagePath: string, packageName: string } | nil
 local function getCurrentFileInfo()
 	local filePath = vim.uri_to_fname(vim.lsp.util.make_position_params().textDocument.uri)
 	if not filePath then
@@ -13,7 +13,16 @@ local function getCurrentFileInfo()
 	end
 
 	local packagePath = filePath:match("src/main/java/(.*)/" .. className .. "%.java$")
-	local packageName = packagePath and packagePath:gsub("/", ".") or ""
+	if not packagePath then
+		vim.notify("Could not determine package path", vim.log.levels.ERROR)
+		return
+	end
+
+	local packageName = packagePath:gsub("/", ".")
+	if not packageName then
+		vim.notify("Could not determine package name", vim.log.levels.ERROR)
+		return
+	end
 
 	return {
 		filePath = filePath,
@@ -24,7 +33,7 @@ local function getCurrentFileInfo()
 end
 
 ---@param directory string
----@return table | nil
+---@return { filePath: string, className: string, packagePath: string, packageName: string, testPackageDir: string, testFileName: string } | nil
 local function getTestFileInfo(directory)
 	local fileInfo = getCurrentFileInfo()
 

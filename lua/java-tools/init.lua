@@ -1,10 +1,24 @@
 --------------------------------------------------------------------------------
 
+---@class GenerateTestOptions
+---@field enabled boolean
+---@field template string
+---@field openTest boolean
+
+---@class GoToTestOptions
+---@field enabled boolean
+
+---@class Options
+---@field testDirectory string
+---@field generateTest GenerateTestOptions
+---@field goToTest GoToTestOptions
+
 local M = {
+	---@type Options
 	opts = {
+		testDirectory = "src/test/java/",
 		generateTest = {
 			enabled = true,
-			directory = "src/test/java/",
 			template = [[
 package %s;
 
@@ -22,6 +36,10 @@ class %sTest {
 ]],
 			openTest = true,
 		},
+
+		goToTest = {
+			enabled = true,
+		},
 	},
 }
 
@@ -35,22 +53,18 @@ function Main()
 			{ desc = "Generate test" }
 		)
 	end
+
+	if M.opts.goToTest.enabled then
+		vim.api.nvim_create_user_command("JavaGoToTest", require("java-tools.goToTest"), { desc = "Go to class test" })
+	end
 end
 
 --------------------------------------------------------------------------------
 
+---@param opts Options
 M.setup = function(opts)
-	if opts ~= nil and vim.tbl_count(opts) > 0 then
-		-- is this needed? makes plugin slow to load...
-		vim.validate({
-			opts = { opts, "table", true },
-			opts_generateTest = { opts.generateTest, "table", true },
-			opts_generateTest_enabled = { opts.generateTest.enabled, "boolean", true },
-			opts_generateTest_directory = { opts.generateTest.directory, "string", true },
-			opts_generateTest_template = { opts.generateTest.template, "string", true },
-			opts_generateTest_openTest = { opts.generateTest.openTest, "boolean", true },
-		})
-		M.opts = opts
+	if opts ~= nil then
+		M.opts = vim.tbl_deep_extend("force", vim.deepcopy(M.opts), opts)
 	end
 
 	Main()

@@ -1,7 +1,8 @@
-local options = require("java-tools").opts.generateTest
+local options = require("java-tools").opts
+local generateTestOptions = require("java-tools").opts.generateTest
 
 local function generateJunitTest()
-	local testFileInfo = require("java-tools.utils.file").testFileInfo(options.directory)
+	local testFileInfo = require("java-tools.utils.file").testFileInfo(options.testDirectory)
 
 	if testFileInfo == nil then
 		return
@@ -12,7 +13,7 @@ local function generateJunitTest()
 	if vim.fn.filereadable(testFileInfo.testFileName) == 0 then
 		local file = io.open(testFileInfo.testFileName, "w")
 		if file then
-			file:write(string.format(options.template, testFileInfo.packageName, testFileInfo.className))
+			file:write(string.format(generateTestOptions.template, testFileInfo.packageName, testFileInfo.className))
 			file:close()
 			vim.notify("Test created: " .. testFileInfo.testFileName, vim.log.levels.INFO)
 		else
@@ -23,7 +24,7 @@ local function generateJunitTest()
 		vim.notify("Test file already exists: " .. testFileInfo.testFileName, vim.log.levels.WARN)
 	end
 
-	if options.openTest then
+	if generateTestOptions.openTest then
 		vim.cmd("edit " .. testFileInfo.testFileName)
 	end
 end
