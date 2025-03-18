@@ -10,7 +10,6 @@ function SetupCommands()
   end
 end
 
----@param opts Options
 M.setup = function(opts)
   M.opts = vim.tbl_deep_extend("force", require("java-tools.options"), opts)
 

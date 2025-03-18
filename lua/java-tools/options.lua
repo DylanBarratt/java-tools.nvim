@@ -1,15 +1,15 @@
 ---@class GenerateTestOptions
----@field enabled boolean?
----@field template string?
----@field openTest boolean?
+---@field enabled boolean
+---@field template string
+---@field openTest boolean
 
 ---@class GoToTestOptions
----@field enabled boolean?
+---@field enabled boolean
 
 ---@class Options
----@field testDirectory string?
----@field generateTest GenerateTestOptions?
----@field goToTest GoToTestOptions?
+---@field testDirectory string
+---@field generateTest GenerateTestOptions
+---@field goToTest GoToTestOptions
 
 ---@type Options
 return {
