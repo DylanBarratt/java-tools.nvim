@@ -1,51 +1,6 @@
---------------------------------------------------------------------------------
+local M = {}
 
----@class GenerateTestOptions
----@field enabled boolean
----@field template string
----@field openTest boolean
-
----@class GoToTestOptions
----@field enabled boolean
-
----@class Options
----@field testDirectory string
----@field generateTest GenerateTestOptions
----@field goToTest GoToTestOptions
-
-local M = {
-	---@type Options
-	opts = {
-		testDirectory = "src/test/java/",
-		generateTest = {
-			enabled = true,
-			template = [[
-package %s;
-
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-
-class %sTest {
-
-		@Test
-		void testExample() {
-				// TODO: Implement test
-				assertTrue(true);
-		}
-}
-]],
-			openTest = true,
-		},
-
-		goToTest = {
-			enabled = true,
-		},
-	},
-}
-
---------------------------------------------------------------------------------
-
-function Main()
+function SetupCommands()
 	if M.opts.generateTest.enabled then
 		vim.api.nvim_create_user_command(
 			"JavaGenerateTest",
@@ -59,15 +14,11 @@ function Main()
 	end
 end
 
---------------------------------------------------------------------------------
-
 ---@param opts Options
 M.setup = function(opts)
-	if opts ~= nil then
-		M.opts = vim.tbl_deep_extend("force", vim.deepcopy(M.opts), opts)
-	end
+	M.opts = vim.tbl_deep_extend("force", require("java-tools.options"), opts)
 
-	Main()
+	SetupCommands()
 end
 
 return M
