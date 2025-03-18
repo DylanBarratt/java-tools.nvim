@@ -13,10 +13,10 @@
 
 ---@type Options
 return {
-	testDirectory = "src/test/java/",
-	generateTest = {
-		enabled = true,
-		template = [[
+  testDirectory = "src/test/java/",
+  generateTest = {
+    enabled = true,
+    template = [[
 package %s;
 
 import org.junit.jupiter.api.Test;
@@ -31,10 +31,10 @@ class %sTest {
 		}
 }
 ]],
-		openTest = true,
-	},
+    openTest = true,
+  },
 
-	goToTest = {
-		enabled = true,
-	},
+  goToTest = {
+    enabled = true,
+  },
 }
