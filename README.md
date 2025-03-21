@@ -16,14 +16,13 @@ java-tools provides a set of user freindly tools that give neovim useful Java fu
     }
 }
 ```
+*[Full options here](lua/java-tools/options.lua)*
 
 ## Features
 ### Test Generation 🧪
 Tired of manually creating test files? Hate navigating the file tree to find the place for your test? The JUnit test generation command will automatically generate a new test file for the current Java class!
 
 #### Options
-*[Full options can be found in ](lua/java-tools/options.lua)*
-
 ```lua
 generateTest = {
     enabled = true,
