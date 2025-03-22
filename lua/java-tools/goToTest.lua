@@ -1,14 +1,54 @@
 -- TODO:
+--      open test to line where class is first referenced
 --      custom keymaps
 --      option for how file name is formatted (could take function)
---      offer new test option
 
+local generateTest = require("java-tools.generateTest")
 local options = require("java-tools").opts
+local goToOptions = require("java-tools").opts.goToTest
 local borderChars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
 local title = "Tests"
 
 local function getFileName(path)
   return path:match("([^/\\]+)$")
+end
+
+---@param bufnr number
+---@param winId number
+---@param filePaths string[]
+---@param generateNewTest boolean
+local function keymaps(bufnr, winId, filePaths, generateNewTest)
+  -- open file
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "<CR>", "", {
+    noremap = true,
+    silent = true,
+    callback = function()
+      local cursor = vim.api.nvim_win_get_cursor(winId)
+
+      vim.api.nvim_win_close(winId, true)
+
+      local selectedFile = filePaths[cursor[1]]
+      if selectedFile == nil then
+        vim.notify("selected file invalid", vim.log.levels.ERROR)
+        return
+      end
+
+      if cursor[1] == 1 and generateNewTest and goToOptions.generateTestEnabled then
+        generateTest()
+      end
+
+      vim.cmd("edit " .. selectedFile)
+    end,
+  })
+
+  -- close window
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "<Esc>", "", {
+    noremap = true,
+    silent = true,
+    callback = function()
+      vim.api.nvim_win_close(winId, true)
+    end,
+  })
 end
 
 local function openBorderWindow(width, height, length, zindex)
@@ -46,25 +86,18 @@ local function openBorderWindow(width, height, length, zindex)
   return winId
 end
 
-local function openFloatingWindow(files)
-  ---@type string[]
-  local fileShortNames = {}
-  local longestLen = 0
-  for _, fileLoc in ipairs(files) do
-    local shortName = getFileName(fileLoc)
-    table.insert(fileShortNames, shortName)
-    if #shortName > longestLen then
-      longestLen = #shortName
-    end
-  end
-
+---@param filePaths string[]
+---@param fileShortNames string[]
+---@param longestLen number
+---@param generateNewTest boolean
+local function openFloatingWindow(filePaths, fileShortNames, longestLen, generateNewTest)
   local bufnr = vim.api.nvim_create_buf(false, true)
 
   local width = math.min(longestLen * 2, vim.o.columns)
-  local height = #files
+  local height = #filePaths
   local zindex = 999
 
-  local borderWinId = openBorderWindow(width, height, #fileShortNames, zindex)
+  local borderWinId = openBorderWindow(width, height, #filePaths, zindex)
 
   local winId = vim.api.nvim_open_win(bufnr, true, {
     relative = "editor",
@@ -81,28 +114,16 @@ local function openFloatingWindow(files)
   vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
   vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = bufnr })
 
-  -- open file
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "<CR>", "", {
-    noremap = true,
-    silent = true,
-    callback = function()
-      local cursor = vim.api.nvim_win_get_cursor(winId)
-      local selected_file = files[cursor[1]]
-      if selected_file then
-        vim.api.nvim_win_close(borderWinId, true)
-        vim.api.nvim_win_close(winId, true)
-        vim.cmd("edit " .. selected_file)
-      end
-    end,
-  })
+  keymaps(bufnr, winId, filePaths, generateNewTest)
 
-  -- close window
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "<Esc>", "", {
-    noremap = true,
-    silent = true,
-    callback = function()
-      vim.api.nvim_win_close(borderWinId, true)
-      vim.api.nvim_win_close(winId, true)
+  -- close border win with main win
+  vim.api.nvim_create_autocmd("WinClosed", {
+    callback = function(event)
+      if tonumber(event.match) == winId then
+        if vim.api.nvim_win_is_valid(borderWinId) then
+          vim.api.nvim_win_close(borderWinId, true)
+        end
+      end
     end,
   })
 end
@@ -122,24 +143,44 @@ local function goToTest()
       return
     end
 
-    local filteredFiles = {}
+    local filteredFilesPaths = {} -- paths
+    local filteredFilesNames = {} -- displayNames
+    local longestLen = 0 -- used to determine window width
+    local generateNewTest = false -- used to determine behaviour when selecting test with matching file name
+
+    local testFileInfo = require("java-tools.utils.file").testFileInfo(options.testDirectory)
+    if testFileInfo ~= nil then
+      local fileName = testFileInfo.testFileName
+      local isNew = vim.fn.filewritable(fileName)
+      generateNewTest = isNew == 0 and true or false
+      local name = getFileName(fileName) .. (generateNewTest and " (new)" or "")
+      longestLen = #name
+      table.insert(filteredFilesPaths, fileName)
+      table.insert(filteredFilesNames, name)
+    end
+
     for _, ref in ipairs(result) do
       local path = vim.uri_to_fname(ref.uri or ref.targetUri)
 
       if
-        path:find(vim.fn.getcwd() .. "/" .. options.testDirectory, 1, true)
-        and not vim.tbl_contains(filteredFiles, path)
+        path:find(vim.fn.getcwd() .. "/" .. options.testDirectory, 1, true) -- in test directory
+        and not vim.tbl_contains(filteredFilesPaths, path) -- not duplicate name
       then
-        table.insert(filteredFiles, path)
+        local name = getFileName(path)
+        if #name > longestLen then
+          longestLen = #name
+        end
+        table.insert(filteredFilesPaths, path)
+        table.insert(filteredFilesNames, name)
       end
     end
 
-    if vim.tbl_isempty(filteredFiles) then
+    if vim.tbl_isempty(filteredFilesPaths) then
       vim.notify("No tests found in " .. options.testDirectory, vim.log.levels.INFO)
       return
     end
 
-    openFloatingWindow(filteredFiles)
+    openFloatingWindow(filteredFilesPaths, filteredFilesNames, longestLen, generateNewTest)
   end)
 end
 

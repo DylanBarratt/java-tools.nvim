@@ -5,6 +5,7 @@
 
 ---@class GoToTestOptions
 ---@field enabled boolean
+---@field generateTestEnabled boolean
 
 ---@class Options
 ---@field testDirectory string
@@ -36,5 +37,6 @@ class %sTest {
 
   goToTest = {
     enabled = true,
+    generateTestEnabled = true,
   },
 }

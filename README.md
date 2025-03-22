@@ -46,20 +46,19 @@ class %sTest {
 ```
 
 ### GoTo Test 🎯
-Clicking through a file list is slow! Navigate directly to the test file for the current class
+Clicking through a file list is slow! Navigate directly to the test file for the current class. GoTo Test provides a list of files testing the current class or the option to generate a new test (using generateTest settings).
 
 #### Options
 ```lua
 goToTest = {
     enabled = true,
+    generateTestEnabled = true,
 }
 ```
-
-#### TODO:
-    - go to tests that reference the current class
 
 ## Future Features
     - better doc comments
     - indivdual test creation
     - implement interface with optional method overrides
+    - write vim doc for project
     - MORE!!!
