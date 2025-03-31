@@ -140,11 +140,6 @@ local function goToTest()
       return
     end
 
-    if not result or vim.tbl_isempty(result) then
-      vim.notify("No class references found", vim.log.levels.INFO)
-      return
-    end
-
     local filteredFilesPaths = {} -- paths
     local filteredFilesNames = {} -- displayNames
     local longestLen = 0 -- used to determine window width
@@ -177,10 +172,6 @@ local function goToTest()
       end
     end
 
-    if vim.tbl_isempty(filteredFilesPaths) then
-      vim.notify("No tests found in " .. options.testDirectory, vim.log.levels.INFO)
-      return
-    end
 
     openFloatingWindow(filteredFilesPaths, filteredFilesNames, longestLen, generateNewTest)
   end)
