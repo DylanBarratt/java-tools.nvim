@@ -1,6 +1,8 @@
 ---@return { filePath: string, className: string, packagePath: string, packageName: string } | nil
 local function getCurrentFileInfo()
-  local filePath = vim.uri_to_fname(vim.lsp.util.make_position_params().textDocument.uri)
+  local clients = vim.lsp.get_clients()
+  local params = vim.lsp.util.make_position_params(0, clients[1].offset_encoding or "utf-16")
+  local filePath = vim.uri_to_fname(params.textDocument.uri)
   if not filePath then
     vim.notify("Could not determine file path", vim.log.levels.ERROR)
     return

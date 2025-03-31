@@ -129,8 +129,10 @@ local function openFloatingWindow(filePaths, fileShortNames, longestLen, generat
 end
 
 local function goToTest()
-  local params = vim.lsp.util.make_position_params()
-  params.context = { includeDeclaration = false }
+  local clients = vim.lsp.get_clients()
+  local posParams = vim.lsp.util.make_position_params(0, clients[1].offset_encoding or "utf-16")
+  local params =
+    { context = { includeDeclaration = false }, position = posParams.position, textDocument = posParams.textDocument }
 
   vim.lsp.buf_request(0, "textDocument/references", params, function(err, result, _, _)
     if err then
