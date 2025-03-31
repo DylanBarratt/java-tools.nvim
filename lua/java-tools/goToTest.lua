@@ -1,5 +1,4 @@
 -- TODO:
---      open test to line where class is first referenced
 --      custom keymaps
 --      option for how file name is formatted (could take function)
 
@@ -16,8 +15,9 @@ end
 ---@param bufnr number
 ---@param winId number
 ---@param filePaths string[]
+---@param fileRefLocs number[]
 ---@param generateNewTest boolean
-local function keymaps(bufnr, winId, filePaths, generateNewTest)
+local function keymaps(bufnr, winId, filePaths, fileRefLocs, generateNewTest)
   -- open file
   vim.api.nvim_buf_set_keymap(bufnr, "n", "<CR>", "", {
     noremap = true,
@@ -37,7 +37,9 @@ local function keymaps(bufnr, winId, filePaths, generateNewTest)
         generateTest()
       end
 
+      -- open file at first reference or start
       vim.cmd("edit " .. selectedFile)
+      vim.api.nvim_win_set_cursor(0, { fileRefLocs[cursor[1]], 0 })
     end,
   })
 
@@ -88,9 +90,10 @@ end
 
 ---@param filePaths string[]
 ---@param fileShortNames string[]
+---@param fileRefLocs number[]
 ---@param longestLen number
 ---@param generateNewTest boolean
-local function openFloatingWindow(filePaths, fileShortNames, longestLen, generateNewTest)
+local function openFloatingWindow(filePaths, fileShortNames, fileRefLocs, longestLen, generateNewTest)
   local bufnr = vim.api.nvim_create_buf(false, true)
 
   local width = math.min(longestLen * 2, vim.o.columns)
@@ -114,7 +117,7 @@ local function openFloatingWindow(filePaths, fileShortNames, longestLen, generat
   vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
   vim.api.nvim_set_option_value("bufhidden", "wipe", { buf = bufnr })
 
-  keymaps(bufnr, winId, filePaths, generateNewTest)
+  keymaps(bufnr, winId, filePaths, fileRefLocs, generateNewTest)
 
   -- close border win with main win
   vim.api.nvim_create_autocmd("WinClosed", {
@@ -134,14 +137,16 @@ local function goToTest()
   local params =
     { context = { includeDeclaration = false }, position = posParams.position, textDocument = posParams.textDocument }
 
-  vim.lsp.buf_request(0, "textDocument/references", params, function(err, result, _, _)
+  vim.lsp.buf_request(0, "textDocument/references", params, function(err, result, _)
     if err then
       vim.notify("Error finding references: " .. err.message, vim.log.levels.ERROR)
       return
     end
 
+    -- split into seperate tables so that they can directly be used to set bufer lines
     local filteredFilesPaths = {} -- paths
     local filteredFilesNames = {} -- displayNames
+    local filteredFilesLocs = {} -- reference locations
     local longestLen = 0 -- used to determine window width
     local generateNewTest = false -- used to determine behaviour when selecting test with matching file name
 
@@ -154,6 +159,7 @@ local function goToTest()
       longestLen = #name
       table.insert(filteredFilesPaths, fileName)
       table.insert(filteredFilesNames, name)
+      table.insert(filteredFilesLocs, 1) -- open on first line
     end
 
     for _, ref in ipairs(result) do
@@ -169,11 +175,11 @@ local function goToTest()
         end
         table.insert(filteredFilesPaths, path)
         table.insert(filteredFilesNames, name)
+        table.insert(filteredFilesLocs, ref.range.start.line)
       end
     end
 
-
-    openFloatingWindow(filteredFilesPaths, filteredFilesNames, longestLen, generateNewTest)
+    openFloatingWindow(filteredFilesPaths, filteredFilesNames, filteredFilesLocs, longestLen, generateNewTest)
   end)
 end
 
